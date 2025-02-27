@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Use device-width for proper mobile scaling -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ecoPulse – Final Slide-Up UI (No Image in Email)</title>
+
+  <!-- Import Poppins Font -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" />
+
+  <style>
+    
+    @import url('https://fonts.googleapis.com/css2?family=Playwrite+IT+Moderna:wght@100..400&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #e9f5ec; /* Pastel green background */
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    h1 {
+      margin-bottom: 20px;
+      text-align: center;
+      color: #2f4f4f;
+      font-weight: 600;
+      font-size: 1.8rem;
+      font-family: "Playwrite IT Moderna", serif;
+    }
+
+    /* VIDEO & CANVAS CONTAINER */
+    #container {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      aspect-ratio: 4/3;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    #video, #canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* BUTTON */
+    button {
+      margin: 20px 0;
+      font-size: 1rem;
+      padding: 12px 20px;
+      border: none;
+      background-color: #4caf50;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+
+    /* SLIDE-UP CARD CONTAINER */
+    #scanCard {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translate(-50%, 100%);
+      width: 100%;
+      max-width: 640px;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+      padding: 20px;
+      z-index: 50;
+      touch-action: pan-y;
+    }
+    #scanCard.show {
+      transform: translate(-50%, 0);
+    }
+    #scanCard.min {
+      transform: translate(-50%, 80%);
+    }
+
+    /* DRAG HANDLE (horizontal bar) */
+    #dragHandle {
+      width: 40px;
+      height: 4px;
+      background-color: #ccc;
+      border-radius: 2px;
+      margin: 0 auto 12px auto;
+      cursor: pointer;
+    }
+
+    /* DETECTION RESULT */
+    #result {
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+    }
+    /* PLANT NAME + HEART ICON */
+    .plant-name {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .plant-name .heart {
+      color: #ff6868;
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    /* ENVIRONMENT ALERT */
+    #environmentAlert {
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
+    #environmentAlert strong{
+      color: red;
+    }
+
+    /* 3D MODEL VIEWER */
+    #modelViewer {
+      display: none;
+      width: 100%;
+      aspect-ratio: 4/3;
+      border: 2px solid #333;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    #modelViewer iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* RECAPTURE BUTTON */
+    #recaptureBtn {
+      display: inline-block;
+      font-size: 1rem;
+      padding: 10px 18px;
+      border: none;
+      background-color: #000000;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #recaptureBtn:hover {
+      background-color: #888;
+    }
+
+    /* LEADERBOARD */
+    #leaderboard {
+      width: 100%;
+      max-width: 640px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 20px;
+      text-align: center;
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+    }
+
+    /* POPUP FOR RARE SPECIES */
+    #popup {
+      display: block; 
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.5);
+      background: #fff;
+      border: 3px solid #4caf50;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      font-size: 1.4rem;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      opacity: 0;
+      transition: all 0.5s ease;
+    }
+    #popup.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.4rem;
+      }
+      button {
+        font-size: 0.9rem;
+        padding: 10px 16px;
+      }
+      #result, #environmentAlert {
+        font-size: 1rem;
+      }
+      #leaderboard {
+        font-size: 1rem;
+      }
+      #recaptureBtn {
+        font-size: 0.9rem;
+        padding: 8px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>ecoPulse – Revolutionizing Environmental Monitoring</h1>
+
+  <!-- Container for video & canvas -->
+  <div id="container">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <!-- Capture Button -->
+  <button id="captureBtn">Capture &amp; Analyze</button>
+
+  <!-- Slide-Up Card (detection result, environment alert, 3D model, recapture) -->
+  <div id="scanCard">
+    <div id="dragHandle"></div>
+    <div id="result"></div>
+    <div id="environmentAlert"></div>
+    <div id="modelViewer">
+      <iframe id="echo3dFrame" src=""></iframe>
+    </div>
+    <button id="recaptureBtn">Recapture</button>
+  </div>
+
+  <!-- Leaderboard Card -->
+  <div id="leaderboard">Leaderboard will appear here.</div>
+
+  <!-- Popup for Rare Species -->
+  <div id="popup">
+    <div class="icon">✓</div>
+    <div class="message">Congratulations! You discovered a Rare Species and earned 1000 points!</div>
+  </div>
+
+  <!-- Audio alert for Rare Species -->
+  <audio id="congratsAudio" src="https://cdn.glitch.global/b7b70295-1c58-4652-aafb-3783efcd5e78/congrats.mp3?v=1740646663134" preload="auto"></audio>
+
+  <!-- TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    // Initialize EmailJS with your public key
+    emailjs.init("jlARds2Z86DO5A7Fp");
+  </script>
+
+  <!-- Firebase (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script>
+    // Replace with your actual Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAjTYExYqinUd9zRPWTmqy7WKIQw7-T6xs",
+      authDomain: "ecopulse-bce04.firebaseapp.com",
+      projectId: "ecopulse-bce04",
+      storageBucket: "ecopulse-bce04.firebasestorage.app",
+      messagingSenderId: "1061838009060",
+      appId: "1:1061838009060:web:5a0305f075e63995a972f1",
+      measurementId: "G-1MPG2H6PEZ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Anonymous Sign-In
+    function signInAnonymously() {
+      auth.signInAnonymously()
+        .then(() => console.log("Signed in anonymously"))
+        .catch(error => console.error("Anonymous sign-in failed:", error));
+    }
+    signInAnonymously();
+
+    // Display Leaderboard
+    function displayLeaderboard() {
+      db.collection("users")
+        .orderBy("points", "desc")
+        .limit(10)
+        .get()
+        .then((querySnapshot) => {
+          let leaderboardHTML = "<h2>Your Points</h2><ol style='text-align:left;'>";
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            leaderboardHTML += `<li>${doc.id.substring(0, 6)}...: ${data.points} points</li>`;
+          });
+          leaderboardHTML += "</ol>";
+          document.getElementById("leaderboard").innerHTML = leaderboardHTML;
+        })
+        .catch((error) => {
+          console.error("Error fetching leaderboard:", error);
+        });
+    }
+
+    function addPointsToUser(points) {
+      const user = auth.currentUser;
+      if (!user) {
+        console.error("No authenticated user found");
+        return;
+      }
+      const userRef = db.collection("users").doc(user.uid);
+      userRef.get().then((doc) => {
+        let currentPoints = 0;
+        if (doc.exists) {
+          currentPoints = doc.data().points || 0;
+        }
+        userRef.set({ points: currentPoints + points }, { merge: true })
+          .then(() => {
+            console.log("Points updated");
+            displayLeaderboard();
+          })
+          .catch((error) => console.error("Error updating points:", error));
+      });
+    }
+
+    /* Store Rare Species scan in Firestore with location if needed (no base64) */
+    function storeRareSpeciesScan(locationStr) {
+      const user = auth.currentUser;
+      if (!user) {
+        console.error("No authenticated user found to store scan");
+        return;
+      }
+      const docRef = db.collection("rareScans").doc(); // auto ID
+      docRef.set({
+        userId: user.uid,
+        timestamp: new Date().toISOString(),
+        location: locationStr
+      })
+      .then(() => console.log("Rare species scan stored in Firestore"))
+      .catch(error => console.error("Error storing rare species scan:", error));
+    }
+  </script>
+
+  <script>
+    /* AI + Email + Environmental Alert + Slide-Up Card + Recapture (No Image in Email) */
+    const modelURL = 'https://virajsh4h.github.io/ecoPulse-model/model.json';
+    let model;
+
+    const scientificData = {
+      'Neem': {
+        scientificName: 'Azadirachta indica',
+        medicalProperties: 'Antibacterial, antifungal, anti-inflammatory, antiviral',
+        conservationStatus: 'Least Concern'
+      },
+      'Rare Species': {
+        scientificName: 'Rareus plantus',
+        medicalProperties: 'Potential anti-cancer compounds discovered',
+        conservationStatus: 'Critically Endangered'
+      }
+    };
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const captureBtn = document.getElementById('captureBtn');
+    const resultDiv = document.getElementById('result');
+    const environmentAlertDiv = document.getElementById('environmentAlert');
+    const modelViewer = document.getElementById('modelViewer');
+    const echo3dFrame = document.getElementById('echo3dFrame');
+    const popup = document.getElementById('popup');
+    const congratsAudio = document.getElementById('congratsAudio');
+    const scanCard = document.getElementById('scanCard');
+    const recaptureBtn = document.getElementById('recaptureBtn');
+    const dragHandle = document.getElementById('dragHandle');
+
+    // SWIPE/DRAG LOGIC for Minimizing the card
+    let startY = 0;
+    let currentY = 0;
+    let isSwiping = false;
+    scanCard.addEventListener('touchstart', (e) => {
+      isSwiping = true;
+      startY = e.touches[0].clientY;
+    });
+    scanCard.addEventListener('touchmove', (e) => {
+      if (!isSwiping) return;
+      currentY = e.touches[0].clientY;
+      const diff = currentY - startY;
+      if (diff > 50) {
+        scanCard.classList.add('min');
+        scanCard.classList.remove('show');
+      } else if (diff < -50) {
+        scanCard.classList.add('show');
+        scanCard.classList.remove('min');
+      }
+    });
+    scanCard.addEventListener('touchend', () => {
+      isSwiping = false;
+    });
+
+    // Recapture => hide the slide-up card, clear the canvas
+    recaptureBtn.addEventListener('click', () => {
+      scanCard.classList.remove('show', 'min');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // Setup webcam video
+    async function setupVideo() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } }
+        });
+        video.srcObject = stream;
+        return new Promise(resolve => {
+          video.onloadedmetadata = () => {
+            video.play();
+            resolve();
+          };
+        });
+      } catch (error) {
+        console.error('Error accessing webcam:', error);
+        alert("Webcam access denied or unavailable. Please check permissions and ensure you're using HTTPS.");
+      }
+    }
+
+    // Load model
+    async function loadModel() {
+      try {
+        model = await tf.loadGraphModel(modelURL);
+        console.log('Custom Plant Detection Model loaded.');
+      } catch (error) {
+        console.error('Error loading model:', error);
+      }
+    }
+
+    // Environmental Alert
+    function checkEnvironmentalAlert() {
+      if (!navigator.geolocation) {
+        environmentAlertDiv.innerHTML = "Geolocation is not supported by your browser.";
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(position => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        console.log(`User location: lat=${lat}, lon=${lon}`);
+        if (lat >= 15 && lat <= 21 && lon >= 72 && lon <= 80) {
+          environmentAlertDiv.innerHTML = `Your current location is: lat=${lat.toFixed(4)}, lon=${lon.toFixed(4)}<br>
+          <strong>ALERT:</strong> Possible <strong>Locust</strong> activity in your area. Authorities have been notified.`;
+        } else {
+          environmentAlertDiv.innerHTML = "No environmental alerts for your area.";
+        }
+      }, error => {
+        console.error("Error getting location:", error);
+        environmentAlertDiv.innerHTML = "Unable to retrieve location for environmental alerts.";
+      });
+    }
+
+    // Store & Email for Rare Species (No screenshot)
+    function storeRareSpeciesScan(locationStr) {
+      const user = auth.currentUser;
+      if (!user) {
+        console.error("No authenticated user found to store scan");
+        return;
+      }
+      const docRef = db.collection("rareScans").doc();
+      docRef.set({
+        userId: user.uid,
+        timestamp: new Date().toISOString(),
+        location: locationStr
+      })
+      .then(() => console.log("Rare species scan stored in Firestore"))
+      .catch(error => console.error("Error storing rare species scan:", error));
+    }
+
+    function triggerEmail(predictedClass, confidence) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const locationStr = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`;
+        const templateParams = {
+          descMatch: `High similarity with known ${predictedClass}`,
+          location: locationStr,
+          seedType: "DICOT"
+        };
+        // Replace with your actual EmailJS service/template
+        emailjs.send('service_kutc2zb', 'template_judq1pt', templateParams)
+          .then(response => console.log('Email sent successfully!', response.status, response.text))
+          .catch(error => console.error('Failed to send email:', error));
+
+        // Also store in Firestore
+        storeRareSpeciesScan(locationStr);
+      }, error => {
+        console.error("Error getting GPS data:", error);
+      });
+    }
+
+    // Rare Species popup
+    function showRareSpeciesPopup() {
+      // Make sure the popup is displayed by toggling the .show class
+      popup.classList.add("show");
+      congratsAudio.play();
+      setTimeout(() => {
+        popup.classList.remove("show");
+      }, 3000);
+    }
+
+    // Main capture function
+    async function captureAndAnalyze() {
+      modelViewer.style.display = "none";
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Preprocess
+      const imgTensor = tf.browser.fromPixels(canvas);
+      const resizedTensor = tf.image.resizeBilinear(imgTensor, [224, 224]);
+      const normalizedTensor = resizedTensor.div(tf.scalar(255));
+      const inputTensor = normalizedTensor.expandDims(0);
+
+      try {
+        // Inference
+        const outputTensor = model.execute(inputTensor);
+        const outputData = await outputTensor.data();
+        const predictionArray = Array.from(outputData);
+        const maxIndex = predictionArray.indexOf(Math.max(...predictionArray));
+        const classNames = ['Neem', 'Rare Species'];
+        const predictedClass = classNames[maxIndex];
+        const confidence = (predictionArray[maxIndex] * 100).toFixed(2);
+
+        let resultHTML = `<div class="plant-name">
+                            ${predictedClass} <span class="heart">♥</span>
+                          </div>
+                          <strong>Confidence:</strong> ${confidence}%<br>`;
+
+        if (scientificData[predictedClass]) {
+          const { scientificName, medicalProperties, conservationStatus } = scientificData[predictedClass];
+          resultHTML += `<p><strong>Scientific Name:</strong> ${scientificName}</p>
+                         <p><strong>Medical Properties:</strong> ${medicalProperties}</p>
+                         <p><strong>Conservation Status:</strong> ${conservationStatus}</p>`;
+        }
+        resultDiv.innerHTML = resultHTML;
+
+        // Slide up the card
+        scanCard.classList.remove('min');
+        scanCard.classList.add('show');
+
+        if (predictedClass === 'Rare Species') {
+          addPointsToUser(1000);
+          showRareSpeciesPopup();
+          triggerEmail(predictedClass, confidence);
+        } else {
+          addPointsToUser(10);
+          checkEnvironmentalAlert();
+          echo3dFrame.src = "https://go.echo3d.co/1Z26";
+          modelViewer.style.display = "block";
+        }
+      } catch (error) {
+        console.error('Error during model execution:', error);
+        resultDiv.innerHTML = `<strong>Error during model execution. Check console for details.</strong>`;
+      } finally {
+        // Clean up
+        imgTensor.dispose();
+        resizedTensor.dispose();
+        normalizedTensor.dispose();
+        inputTensor.dispose();
+      }
+    }
+
+    captureBtn.addEventListener('click', captureAndAnalyze);
+
+    // Initialize
+    async function init() {
+      await setupVideo();
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      await loadModel();
+    }
+    init();
+  </script>
+
+  <!-- Firebase Analytics integration (optional) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics.js";
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+</body>
+</html>
