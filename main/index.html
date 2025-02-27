@@ -273,7 +273,7 @@
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
     // Initialize EmailJS with your public key
-    emailjs.init("jlARds2Z86DO5A7Fp");
+    emailjs.init("YOUR_PUBLIC_KEY");
   </script>
 
   <!-- Firebase (Compat) -->
@@ -283,14 +283,15 @@
   <script>
     // Replace with your actual Firebase config
     const firebaseConfig = {
-      apiKey: "AIzaSyAjTYExYqinUd9zRPWTmqy7WKIQw7-T6xs",
-      authDomain: "ecopulse-bce04.firebaseapp.com",
-      projectId: "ecopulse-bce04",
-      storageBucket: "ecopulse-bce04.firebasestorage.app",
-      messagingSenderId: "1061838009060",
-      appId: "1:1061838009060:web:5a0305f075e63995a972f1",
-      measurementId: "G-1MPG2H6PEZ"
-    };
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_FIREBASE_DOMAIN",
+  projectId: "YOUR_FIREBASE_PROJECT_ID",
+  storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_FIREBASE_SENDER_ID",
+  appId: "YOUR_FIREBASE_APP_ID",
+  measurementId: "YOUR_MEASUREMENT_ID"
+};
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -503,7 +504,7 @@
           seedType: "DICOT"
         };
         // Replace with your actual EmailJS service/template
-        emailjs.send('service_kutc2zb', 'template_judq1pt', templateParams)
+        emailjs.send('SERVICE_ID', 'TEMPLATE_ID', templateParams)
           .then(response => console.log('Email sent successfully!', response.status, response.text))
           .catch(error => console.error('Failed to send email:', error));
 
